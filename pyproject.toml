@@ -1,0 +1,26 @@
+[project]
+name = "sp500-strategies"
+version = "0.1.0"
+description = "Machine learning pipeline to generate trading signals and backtest S&P 500 strategies."
+authors = [
+    {name = "Mohammad Mahdi Kheirkhah",email = "mohammad.kheirkhah@gritlab.ax"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas (>=3.0.3,<4.0.0)",
+    "numpy (>=2.4.6,<3.0.0)",
+    "scikit-learn (>=1.9.0,<2.0.0)",
+    "matplotlib (>=3.10.9,<4.0.0)",
+    "loguru (>=0.7.3,<0.8.0)",
+    "ta (>=0.11.0,<0.12.0)",
+    "jupyter (>=1.1.1,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.dependencies]
+python = "^3.12"
