@@ -40,14 +40,14 @@ class FeatureEngineer:
         try:
             # Load Constituents Data
             self.constituents_df = pd.read_csv(self.constituents_path)
-            self.constituents_df['date'] = pd.to_datetime(self.constituents_df['date'])
+            self.constituents_df['date'] = pd.to_datetime(self.constituents_df['date'], format='%Y-%m-%d')
             # Sort strictly by ticker and date to ensure chronological integrity
             self.constituents_df = self.constituents_df.sort_values(by=['Name', 'date']).reset_index(drop=True)
             logger.info(f"Constituents data loaded successfully. Shape: {self.constituents_df.shape}")
 
             # Load S&P 500 Index Data (Used later for backtesting benchmark)
             self.index_df = pd.read_csv(self.index_path)
-            self.index_df['Date'] = pd.to_datetime(self.index_df['Date'])
+            self.index_df['Date'] = pd.to_datetime(self.index_df['Date'], format='%m/%d/%y')
             self.index_df = self.index_df.sort_values(by=['Date']).reset_index(drop=True)
             logger.info(f"S&P 500 Index benchmark data loaded successfully. Shape: {self.index_df.shape}")
 
