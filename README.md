@@ -11,6 +11,12 @@ The architecture follows a strict pipeline to prevent data leakage and ensure st
 3. **Machine Learning Pipeline:** A complete model training phase (Imputation, Scaling, Dimensionality Reduction, and ML Model) utilizing Out-of-Fold (OOF) predictions to generate untainted trading signals.
 4. **Strategy Backtesting:** Conversion of ML probability signals into actionable financial positions (e.g., Long/Short, Stock Picking), evaluated via strict PnL and Maximum Drawdown metrics against the S&P 500 benchmark.
 
+### Constraints & Simplifications
+To isolate the predictive power of the machine learning models and simplify the backtesting mechanics, this project assumes the following constraints:
+* **Strict 1-Day Holding Period:** The strategy executes exactly one action per day per asset. If a buy signal is generated based on Day D's data, the asset is purchased on Day D+1 and strictly sold on Day D+2 to measure the exact 24-hour predictive validity.
+* **Fixed Position Sizing (Equal Weighting):** Portfolio allocation does not scale with model confidence. The strategy assumes a fixed investment of exactly **$1 per day** into each stock that triggers an active signal.
+* **Static Index Composition:** The dataset assumes the S&P 500 constituents remain constant over the 5-year period. In reality, index composition frequently changes; ignoring delisted companies introduces *Survivorship Bias* into the backtest results.
+
 ## Repository Structure
 
 ```text
