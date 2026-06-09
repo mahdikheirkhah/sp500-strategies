@@ -53,8 +53,8 @@ This project enforces strict environment constraints to ensure reproducibility.
 
 1. **Clone the repository:**
 ```bash
-git clone <repository_url>
-cd <repository_directory>
+git clone https://github.com/mahdikheirkhah/sp500-strategies.git
+cd sp500-strategies
 
 ```
 
