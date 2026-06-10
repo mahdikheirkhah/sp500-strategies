@@ -30,23 +30,34 @@ class FeatureEngineer:
 
     def load_data(self) -> None:
         """
-        Loads the raw CSV files into Pandas DataFrames and formats the date columns.
-
-        Args:
-            None
-
-        Returns:
-            None: Modifies the instance variables `index_df` and `constituents_df` in-place.
+        Loads the raw CSV files into Pandas DataFrames, standardizes column names, 
+        cleans string pricing, and formats the date columns.
         """
         logger.info("Initiating data load sequence...")
         
         try:
+            # 1. Load Constituents
             self.constituents_df = pd.read_csv(self.constituents_path)
             self.constituents_df['date'] = pd.to_datetime(self.constituents_df['date'], format='%Y-%m-%d')
             self.constituents_df = self.constituents_df.sort_values(by=['Name', 'date']).reset_index(drop=True)
             logger.info(f"Constituents data loaded successfully. Shape: {self.constituents_df.shape}")
 
+            # 2. Load Benchmark (S&P 500)
             self.index_df = pd.read_csv(self.index_path)
+            
+            # --- ARCHITECTURAL FIX: Clean the Benchmark Data Here ---
+            # Dynamically find the close column (handles " Close/Last", "Close", etc.) and standardize to 'close'
+            for col in self.index_df.columns:
+                if 'close' in col.lower():
+                    self.index_df.rename(columns={col: 'close'}, inplace=True)
+                    break
+                    
+            # If the price loaded as a string (e.g., "$2050.50"), convert it to a clean float
+            if 'close' in self.index_df.columns and self.index_df['close'].dtype == 'object':
+                self.index_df['close'] = self.index_df['close'].astype(str).str.replace('$', '', regex=False)
+                self.index_df['close'] = self.index_df['close'].str.replace(',', '', regex=False).astype(float)
+            # --------------------------------------------------------
+
             self.index_df['Date'] = pd.to_datetime(self.index_df['Date'], format='%m/%d/%y')
             self.index_df = self.index_df.sort_values(by=['Date']).reset_index(drop=True)
             logger.info(f"S&P 500 Index benchmark data loaded successfully. Shape: {self.index_df.shape}")

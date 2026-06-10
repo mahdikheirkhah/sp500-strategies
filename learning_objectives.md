@@ -150,3 +150,23 @@ Datasets like the S&P 500 are "Panel Data" (multiple assets on the exact same da
 * **The "Split by Row" Trap:** If you randomly split 500,000 rows, Apple's data for March 15th might land in the Train set, while Microsoft's data for March 15th lands in the Validation set. 
 * **The Leakage:** The model learns that March 15th was a "market crash" day from Apple, and illegally uses that macro-economic knowledge to predict Microsoft's crash in the validation set.
 * **The Fix:** We must strictly split the data by **Calendar Date**, ensuring all 500 stocks for any given day are moved together as a single, unbreakable block.
+
+
+---
+
+## 11. Strategy Evaluation & Execution Mechanics
+
+### PnL vs. Maximum Drawdown (Risk vs. Reward)
+* **Cumulative PnL:** The absolute return of a strategy over a given period. While important, it is heavily flawed as a standalone metric because it ignores the volatility and risk endured to achieve that profit.
+* **Maximum Drawdown (Max DD):** The largest peak-to-trough drop in the portfolio's value. This is the critical measure of risk and "pain." 
+* **The Asymmetry of Loss:** Drawdowns are mathematically punishing. A 10% drawdown requires an 11% gain to recover. A 50% drawdown requires a 100% gain to recover. Quants prioritize strategies with low, stable drawdowns over high, erratic PnL.
+
+### The Mechanics of Short Selling
+* **Going Long:** Buying an asset with the expectation that its price will rise. Maximum loss is capped at 100%.
+* **Going Short:** Borrowing an asset and selling it at the current price, with the expectation of buying it back later at a lower price to return to the lender. The profit is the difference.
+* **The Risk of Shorting:** Because there is no mathematical ceiling to how high a stock price can go, short selling carries theoretically infinite risk. Risk management (like stop-losses) is mandatory when shorting.
+
+### Statistical Accuracy vs. Business Value (Magnitude vs. Direction)
+* **The Accuracy Paradox:** Standard ML metrics (like Accuracy or AUC) treat all predictions equally. In algorithmic trading, predictions are weighted by market volatility (magnitude). A model with 55% accuracy can easily lose money if its 45% of incorrect predictions occur on days with massive price swings.
+* **Bridging the Gap:** Business value (PnL) is dictated by the *magnitude* of the returns, not just the *direction*. A quantitative strategy must be backtested against actual historical percentage changes to prove that the model's edge survives the reality of volatile, high-impact trading days.
+
