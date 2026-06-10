@@ -105,3 +105,10 @@ While PCA is the default for general data science, quantitative finance requires
 * **The Problem with Blenders in Finance:** PCA, PLS, and Autoencoders destroy original features by blending them into mathematical components. This creates a "black box" where it is impossible to explain the exact financial reason (e.g., RSI vs. MACD) a trade was executed.
 * **The Solution for this Project: Recursive Feature Elimination (RFE).** * RFE acts as a "surgeon." It trains a model, ranks the indicators by importance, and iteratively deletes the weakest, most redundant ones. 
   * *Advantage:* It removes multicollinearity while preserving the original, human-readable indicators. If the model executes a trade, the researcher can still definitively say, "The model bought because the MACD momentum was strong."
+
+---
+
+### Cross-Validation in Finance: Surviving Market Regimes
+* **Market Regimes:** Financial markets behave differently in varying macroeconomic conditions (e.g., a low-volatility Bull Market vs. a high-volatility Financial Crisis). These distinct, continuous periods are called Market Regimes.
+* **The K-Fold Trap:** Standard machine learning uses K-Fold Cross-Validation, which randomly shuffles data. In finance, this destroys the arrow of time, mixes distinct market regimes together, and allows the model to "cheat" by using future data to predict the past.
+* **The Solution (Time-Series Split):** We must use chronological splitting. By training on a continuous block of the past to predict a continuous block of the future, we force the model to prove it can survive unknown, upcoming market regimes using only historical knowledge.

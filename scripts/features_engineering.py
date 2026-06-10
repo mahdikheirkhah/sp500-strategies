@@ -3,7 +3,7 @@ import numpy as np
 from loguru import logger
 
 # Import the new decoupled class
-from scripts.indicators import TechnicalIndicators
+from indicators import TechnicalIndicators
 
 
 class FeatureEngineer:
