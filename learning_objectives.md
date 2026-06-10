@@ -112,3 +112,17 @@ While PCA is the default for general data science, quantitative finance requires
 * **Market Regimes:** Financial markets behave differently in varying macroeconomic conditions (e.g., a low-volatility Bull Market vs. a high-volatility Financial Crisis). These distinct, continuous periods are called Market Regimes.
 * **The K-Fold Trap:** Standard machine learning uses K-Fold Cross-Validation, which randomly shuffles data. In finance, this destroys the arrow of time, mixes distinct market regimes together, and allows the model to "cheat" by using future data to predict the past.
 * **The Solution (Time-Series Split):** We must use chronological splitting. By training on a continuous block of the past to predict a continuous block of the future, we force the model to prove it can survive unknown, upcoming market regimes using only historical knowledge.
+
+---
+
+### 8. Interpretability: The Quantitative Researcher's Creed
+* **The Danger of the Black Box:** A model that works without an explanation is a liability. If a model generates profits but its reasoning is opaque, a quant cannot determine if it is identifying a genuine market edge or exploiting a statistical fluke/leakage.
+* **Feature Importance as a Sanity Check:** By extracting feature importance scores, we can verify that the model is relying on established market concepts (like RSI/MACD) rather than noise or data artifacts.
+* **The Pipeline Pattern:** To prevent Scaling Leakage, we must bundle preprocessing (Scaling) and modeling into a single `scikit-learn` Pipeline. This ensures the model learns the scaling parameters *only* from the training set and applies those same parameters to the validation/test sets, keeping them pristine and unseen.
+
+---
+
+### 9. Pipeline Stability & Generalization
+* **The Variance Trap:** In cross-validation, a high average AUC is meaningless if the AUC variance across folds is massive. Massive variance indicates the model is overfitting to specific time periods (noise) rather than learning generalizable market patterns (signal).
+* **The Stability Metric:** The goal of a robust quantitative strategy is *low variance* across folds. A model that consistently performs at a moderate level (e.g., 60% AUC) across all market regimes is objectively superior to a model that swings wildly between genius-level and random performance.
+* **Generalization:** True success in quantitative trading is the ability of the model to perform equally well on the "Final Exam" (the Test Set) as it did during the "Classroom" (the Train/Validation folds). High stability across CV folds is the strongest leading indicator that the model will generalize well to the future.
