@@ -65,7 +65,7 @@ There is a strict pipeline that converts a mathematical prediction into real mon
 
 ---
 
-### 5. Market Mechanics: Mean-Reversion vs. Momentum
+## 5. Market Mechanics: Mean-Reversion vs. Momentum
 Financial indicators generally fall into two philosophical categories that attempt to capture different market regimes.
 
 * **Mean-Reversion ("The Rubber Band Effect"):** Assumes that prices cannot travel too far from their historical average without eventually snapping back. 
@@ -77,7 +77,31 @@ Financial indicators generally fall into two philosophical categories that attem
 
 ---
 
-### 6. Indicator Conflict & The Role of Machine Learning
+## 6. Indicator Conflict & The Role of Machine Learning
 Mean-Reversion and Momentum indicators frequently contradict each other (e.g., RSI says "Sell, it's too high!" while MACD says "Buy, momentum is accelerating!").
 * **Why feed both to an ML model?** We feed conflicting indicators to ML algorithms so the model can act as a referee, learning exactly *when* one philosophy overrules the other.
 * **Linear vs. Non-Linear Models:** Linear Regression struggles with conflicting indicators because static weights can cancel each other out. Non-linear models (like Random Forest or XGBoost) excel here because they learn conditional, multi-dimensional rules (e.g., *IF* RSI is extremely high *AND* MACD is accelerating, *THEN* treat it as a breakout and buy).
+
+---
+
+## 7. Feature Engineering & Dimensionality Reduction
+
+### The Hazard: Multicollinearity
+Financial features are almost never independent. A 10-day SMA, a 20-day SMA, and Bollinger Bands are all calculated using the exact same underlying variable: **Price**. 
+* **Multicollinearity** occurs when many features in a dataset are highly correlated with each other. Feeding them all to an ML model confuses the algorithm because they provide redundant information.
+* **Feature Importance Dilution:** In tree-based models, multicollinearity ruins feature importance metrics. The model randomly splits the "credit" among the correlated features (e.g., 5% to the 10-day SMA and 5% to the 20-day SMA). This creates the dangerous illusion that the broader concept of "Trend" is only 5% important, tricking the researcher.
+
+### The Physics of PCA: Trend vs. Volatility
+When Principal Component Analysis (PCA) is applied to a highly correlated set of financial indicators, it naturally groups the variances into pure, uncorrelated financial concepts:
+* **PC1 (Market Trend):** Because the primary reason all indicators move together is the actual stock price changing, the first principal component almost always isolates the general "Market Trend" (Is the stock going up or down?).
+* **PC2 (Volatility):** The second biggest variance, strictly orthogonal to the trend, is usually how violently the price is swinging. PC2 captures "Volatility" independent of direction.
+
+### Selecting a Dimensionality Reduction Strategy
+While PCA is the default for general data science, quantitative finance requires highly interpretable models.
+
+* **PCA (Principal Component Analysis):** Unsupervised. It acts as a "blender." It crushes correlated features into orthogonal components based solely on variance, ignoring the target.
+* **PLS (Partial Least Squares):** Supervised. A "smart blender" that maximizes variance *and* correlation to the target return.
+* **Autoencoders:** Deep learning neural networks. Powerful for massive, complex datasets (hundreds of features) capturing non-linear regimes, but massive overkill for a small set of technical indicators.
+* **The Problem with Blenders in Finance:** PCA, PLS, and Autoencoders destroy original features by blending them into mathematical components. This creates a "black box" where it is impossible to explain the exact financial reason (e.g., RSI vs. MACD) a trade was executed.
+* **The Solution for this Project: Recursive Feature Elimination (RFE).** * RFE acts as a "surgeon." It trains a model, ranks the indicators by importance, and iteratively deletes the weakest, most redundant ones. 
+  * *Advantage:* It removes multicollinearity while preserving the original, human-readable indicators. If the model executes a trade, the researcher can still definitively say, "The model bought because the MACD momentum was strong."
