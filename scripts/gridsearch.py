@@ -16,8 +16,8 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score, accuracy_score, log_loss
 
 # Import our previously built data pipeline
-from scripts.features_engineering import FeatureEngineer
-from scripts.model_selection import CrossValidator
+from features_engineering import FeatureEngineer
+from model_selection import CrossValidator
 
 
 class ModelTrainer:
@@ -175,7 +175,7 @@ class ModelTrainer:
 
 if __name__ == "__main__":
     try:
-        engineer = FeatureEngineer(index_data_path="data/HistoricalData.csv", constituents_data_path="data/all_stocks_5yr.csv")
+        engineer = FeatureEngineer(index_data_path="data/HistoricalPrices.csv", constituents_data_path="data/all_stocks_5yr.csv")
         engineer.load_data()
         engineer.define_target()
         engineer.apply_technical_indicators()
@@ -190,18 +190,18 @@ if __name__ == "__main__":
         candidate_models = {
             "LogisticRegression": {
                 # Simple linear model to test if the market regime is just a trend
-                "model": LogisticRegression(random_state=42, multi_class='ovr', max_iter=1000, n_jobs=1),
+                "model": LogisticRegression(random_state=42, max_iter=1000, n_jobs=-1),
                 "params": {'model__C': [0.1, 1.0]}
             },
             "RandomForest": {
                 # Bagging model to capture complex logic
-                "model": RandomForestClassifier(random_state=42, n_jobs=1),
-                "params": {'model__n_estimators': [50, 100], 'model__max_depth': [5, 10]}
+                "model": RandomForestClassifier(random_state=42, n_jobs=-1),
+                "params": {'model__n_estimators': [30 ,50, 100], 'model__max_depth': [5, 10]}
             },
             "XGBoost": {
                 # Boosting model for aggressive error correction
-                "model": XGBClassifier(random_state=42, objective='multi:softprob', eval_metric='mlogloss', n_jobs=1),
-                "params": {'model__n_estimators': [50, 100], 'model__learning_rate': [0.01, 0.1], 'model__max_depth': [3, 5]}
+                "model": XGBClassifier(random_state=42, objective='multi:softprob', eval_metric='mlogloss', n_jobs=-1),
+                "params": {'model__n_estimators': [30, 50, 100], 'model__learning_rate': [0.01, 0.1], 'model__max_depth': [3, 5]}
             }
         }
 
