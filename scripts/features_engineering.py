@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 
+# Import the new decoupled class
+from scripts.indicators import TechnicalIndicators
+
 
 class FeatureEngineer:
     """
@@ -38,14 +41,11 @@ class FeatureEngineer:
         logger.info("Initiating data load sequence...")
         
         try:
-            # Load Constituents Data
             self.constituents_df = pd.read_csv(self.constituents_path)
             self.constituents_df['date'] = pd.to_datetime(self.constituents_df['date'], format='%Y-%m-%d')
-            # Sort strictly by ticker and date to ensure chronological integrity
             self.constituents_df = self.constituents_df.sort_values(by=['Name', 'date']).reset_index(drop=True)
             logger.info(f"Constituents data loaded successfully. Shape: {self.constituents_df.shape}")
 
-            # Load S&P 500 Index Data (Used later for backtesting benchmark)
             self.index_df = pd.read_csv(self.index_path)
             self.index_df['Date'] = pd.to_datetime(self.index_df['Date'], format='%m/%d/%y')
             self.index_df = self.index_df.sort_values(by=['Date']).reset_index(drop=True)
@@ -74,17 +74,11 @@ class FeatureEngineer:
         logger.info("Computing target returns strictly avoiding look-ahead bias...")
         
         try:
-            # Group by ticker ('Name') to prevent calculating returns across different stocks
             grouped_close = self.constituents_df.groupby('Name')['close']
             
-            # pct_change() computes return(i-1, i). 
-            # Shifting by -2 aligns return(D+1, D+2) onto index D.
             self.constituents_df['target_return'] = grouped_close.pct_change().shift(-2)
-            
-            # Convert to ternary classification target: sign of the return (-1, 0, 1)
             self.constituents_df['target'] = np.sign(self.constituents_df['target_return'])
             
-            # Drop rows where target is NaN (the last two days of every ticker's time series)
             initial_len = len(self.constituents_df)
             self.constituents_df = self.constituents_df.dropna(subset=['target']).reset_index(drop=True)
             
@@ -95,6 +89,25 @@ class FeatureEngineer:
             raise
         except Exception as e:
             logger.error(f"Failed to compute target returns: {e}")
+            raise
+
+    def apply_technical_indicators(self) -> None:
+        """
+        Delegates technical indicator generation to the TechnicalIndicators class.
+
+        Args:
+            None
+
+        Returns:
+            None: Modifies the `constituents_df` in-place.
+        """
+        logger.info("Initializing technical indicator computation engine...")
+        try:
+            indicator_engine = TechnicalIndicators(group_column='Name', price_column='close')
+            self.constituents_df = indicator_engine.apply_indicators(self.constituents_df)
+            logger.info(f"Indicators successfully integrated. New DataFrame shape: {self.constituents_df.shape}")
+        except Exception as e:
+            logger.error(f"Failed to integrate technical indicators: {e}")
             raise
 
     def split_train_test(self) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -113,7 +126,6 @@ class FeatureEngineer:
             train_df = self.constituents_df[self.constituents_df['date'].dt.year < 2017].copy()
             test_df = self.constituents_df[self.constituents_df['date'].dt.year >= 2017].copy()
             
-            # Validation check to ensure no overlap
             assert train_df['date'].max() < test_df['date'].min(), "CRITICAL: Train and Test sets overlap chronologically!"
             
             logger.info(f"Split complete. Train set size: {len(train_df)}, Test set size: {len(test_df)}.")
@@ -139,7 +151,6 @@ class FeatureEngineer:
         logger.info("Verifying final data column types...")
         try:
             types_series = self.constituents_df.dtypes
-            # Format the output for clean logging
             types_str = "\n".join([f"  - {col}: {dtype}" for col, dtype in types_series.items()])
             logger.info(f"Constituents DataFrame Types:\n{types_str}")
         except Exception as e:
@@ -148,19 +159,22 @@ class FeatureEngineer:
 
 
 if __name__ == "__main__":
-    # Execution block for testing the component
     try:
-        # Note: Adjust paths if your data folder structure is slightly different
+        # NOTE: Ensure you are running this from the root directory so Python finds `scripts.indicators`
         engineer = FeatureEngineer(
             index_data_path="data/HistoricalPrices.csv", 
             constituents_data_path="data/all_stocks_5yr.csv"
         )
         engineer.load_data()
         engineer.define_target()
+        
+        # New Step: Generate Technical Indicators via the decoupled class
+        engineer.apply_technical_indicators()
+        
         train_data, test_data = engineer.split_train_test()
         engineer.log_column_types()
         
-        logger.success("Feature Engineering Phase 1 (Data Prep & Target) completed successfully.")
+        logger.success("Feature Engineering Phase (Data Prep, Target, Indicators) completed successfully.")
         
     except Exception as main_e:
         logger.critical(f"Pipeline execution failed: {main_e}")
