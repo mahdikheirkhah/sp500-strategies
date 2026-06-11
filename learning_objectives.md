@@ -98,38 +98,37 @@ When Principal Component Analysis (PCA) is applied to a highly correlated set of
 
 ### Selecting a Dimensionality Reduction Strategy
 While PCA is the default for general data science, quantitative finance requires highly interpretable models.
-
 * **PCA (Principal Component Analysis):** Unsupervised. It acts as a "blender." It crushes correlated features into orthogonal components based solely on variance, ignoring the target.
 * **PLS (Partial Least Squares):** Supervised. A "smart blender" that maximizes variance *and* correlation to the target return.
 * **Autoencoders:** Deep learning neural networks. Powerful for massive, complex datasets (hundreds of features) capturing non-linear regimes, but massive overkill for a small set of technical indicators.
 * **The Problem with Blenders in Finance:** PCA, PLS, and Autoencoders destroy original features by blending them into mathematical components. This creates a "black box" where it is impossible to explain the exact financial reason (e.g., RSI vs. MACD) a trade was executed.
-* **The Solution for this Project: Recursive Feature Elimination (RFE).** * RFE acts as a "surgeon." It trains a model, ranks the indicators by importance, and iteratively deletes the weakest, most redundant ones. 
+* **The Solution for this Project: Recursive Feature Elimination (RFE).** RFE acts as a "surgeon." It trains a model, ranks the indicators by importance, and iteratively deletes the weakest, most redundant ones. 
   * *Advantage:* It removes multicollinearity while preserving the original, human-readable indicators. If the model executes a trade, the researcher can still definitively say, "The model bought because the MACD momentum was strong."
 
 ---
 
-### Cross-Validation in Finance: Surviving Market Regimes
+## 8. Cross-Validation in Finance: Surviving Market Regimes
 * **Market Regimes:** Financial markets behave differently in varying macroeconomic conditions (e.g., a low-volatility Bull Market vs. a high-volatility Financial Crisis). These distinct, continuous periods are called Market Regimes.
 * **The K-Fold Trap:** Standard machine learning uses K-Fold Cross-Validation, which randomly shuffles data. In finance, this destroys the arrow of time, mixes distinct market regimes together, and allows the model to "cheat" by using future data to predict the past.
 * **The Solution (Time-Series Split):** We must use chronological splitting. By training on a continuous block of the past to predict a continuous block of the future, we force the model to prove it can survive unknown, upcoming market regimes using only historical knowledge.
 
 ---
 
-### 8. Interpretability: The Quantitative Researcher's Creed
+## 9. Interpretability: The Quantitative Researcher's Creed
 * **The Danger of the Black Box:** A model that works without an explanation is a liability. If a model generates profits but its reasoning is opaque, a quant cannot determine if it is identifying a genuine market edge or exploiting a statistical fluke/leakage.
 * **Feature Importance as a Sanity Check:** By extracting feature importance scores, we can verify that the model is relying on established market concepts (like RSI/MACD) rather than noise or data artifacts.
 * **The Pipeline Pattern:** To prevent Scaling Leakage, we must bundle preprocessing (Scaling) and modeling into a single `scikit-learn` Pipeline. This ensures the model learns the scaling parameters *only* from the training set and applies those same parameters to the validation/test sets, keeping them pristine and unseen.
 
 ---
 
-### 9. Pipeline Stability & Generalization
+## 10. Pipeline Stability & Generalization
 * **The Variance Trap:** In cross-validation, a high average AUC is meaningless if the AUC variance across folds is massive. Massive variance indicates the model is overfitting to specific time periods (noise) rather than learning generalizable market patterns (signal).
 * **The Stability Metric:** The goal of a robust quantitative strategy is *low variance* across folds. A model that consistently performs at a moderate level (e.g., 60% AUC) across all market regimes is objectively superior to a model that swings wildly between genius-level and random performance.
 * **Generalization:** True success in quantitative trading is the ability of the model to perform equally well on the "Final Exam" (the Test Set) as it did during the "Classroom" (the Train/Validation folds). High stability across CV folds is the strongest leading indicator that the model will generalize well to the future.
 
 ---
 
-## 10. Rigorous Signal Generation & Out-of-Sample Testing
+## 11. Rigorous Signal Generation & Out-of-Sample Testing
 
 ### The "Time Machine" Rule (Out-of-Sample Testing)
 In algorithmic trading, simulating reality requires strict adherence to the arrow of time. 
@@ -150,3 +149,21 @@ Datasets like the S&P 500 are "Panel Data" (multiple assets on the exact same da
 * **The "Split by Row" Trap:** If you randomly split 500,000 rows, Apple's data for March 15th might land in the Train set, while Microsoft's data for March 15th lands in the Validation set. 
 * **The Leakage:** The model learns that March 15th was a "market crash" day from Apple, and illegally uses that macro-economic knowledge to predict Microsoft's crash in the validation set.
 * **The Fix:** We must strictly split the data by **Calendar Date**, ensuring all 500 stocks for any given day are moved together as a single, unbreakable block.
+
+---
+
+## 12. Strategy Evaluation & Execution Mechanics
+
+### PnL vs. Maximum Drawdown (Risk vs. Reward)
+* **Cumulative PnL:** The absolute return of a strategy over a given period. While important, it is heavily flawed as a standalone metric because it ignores the volatility and risk endured to achieve that profit.
+* **Maximum Drawdown (Max DD):** The largest peak-to-trough drop in the portfolio's value. This is the critical measure of risk and "pain." 
+* **The Asymmetry of Loss:** Drawdowns are mathematically punishing. A 10% drawdown requires an 11% gain to recover. A 50% drawdown requires a 100% gain to recover. Quants prioritize strategies with low, stable drawdowns over high, erratic PnL.
+
+### The Mechanics of Short Selling
+* **Going Long:** Buying an asset with the expectation that its price will rise. Maximum loss is capped at 100%.
+* **Going Short:** Borrowing an asset and selling it at the current price, with the expectation of buying it back later at a lower price to return to the lender. The profit is the difference.
+* **The Risk of Shorting:** Because there is no mathematical ceiling to how high a stock price can go, short selling carries theoretically infinite risk. Risk management (like stop-losses) is mandatory when shorting.
+
+### Statistical Accuracy vs. Business Value (Magnitude vs. Direction)
+* **The Accuracy Paradox:** Standard ML metrics (like Accuracy or AUC) treat all predictions equally. In algorithmic trading, predictions are weighted by market volatility (magnitude). A model with 55% accuracy can easily lose money if its 45% of incorrect predictions occur on days with massive price swings.
+* **Bridging the Gap:** Business value (PnL) is dictated by the *magnitude* of the returns, not just the *direction*. A quantitative strategy must be backtested against actual historical percentage changes to prove that the model's edge survives the reality of volatile, high-impact trading days.
