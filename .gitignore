@@ -3,7 +3,7 @@
 *.pyc
 .DS_Store
 poetry.lock
-*.pkl
+# *.pkl
 # Python Virtual Environments
 .venv/
 env/
